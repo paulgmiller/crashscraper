@@ -1,0 +1,6 @@
+domain: azure.aks
+layout:
+- go.kubebuilder.io/v3
+projectName: crashscraper
+repo: azure.aks/crashscraper
+version: "3"
