@@ -58,7 +58,7 @@ type PodCrashReconciler struct {
 	client.Client
 	restartCount int32
 	tailCount    int64
-	rest         rest.Interface
+	clientset    kubernetes.Interface
 	//Scheme *runtime.Scheme
 }
 
@@ -81,8 +81,8 @@ func (r *PodCrashReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				Container: cs.Name,
 				TailLines: &r.tailCount,
 			}
-			logsresponse := r.rest.Get().Namespace(pod.Namespace).Name(pod.Name).Resource("pods").SubResource("log").VersionedParams(podLogOptions, clientgoscheme.ParameterCodec)
-			body, err := logsresponse.Stream(ctx)
+			resp := r.clientset.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, podLogOptions)
+			body, err := resp.Stream(ctx)
 			if err != nil {
 				return ctrl.Result{}, err
 			}
@@ -136,7 +136,7 @@ func main() {
 		Client:       mgr.GetClient(),
 		restartCount: 3,
 		tailCount:    10,
-		rest:         typedclient.RESTClient(),
+		clientset:    typedclient,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "pod carsh")
 		os.Exit(1)
